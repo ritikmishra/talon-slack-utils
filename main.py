@@ -16,7 +16,8 @@ used_words = {
         "preposition":[] ,
         "conjunction":[] ,
         "interjection":[] ,
-        "question_word":["Who"]
+        "question_word":["Who"],
+        "determiner": ["a", "the"]
 
         }
 def close():
@@ -28,7 +29,12 @@ def user_said_question(human_response):
     else:
         return False
 
-
+def conjugator(form):
+    global used_words
+    verb = subprocess.check_output(['nodejs','conjugate.js',random.choice(used_words["verb"]),form]).rstrip()
+    if verb == "does" or verb == "makes" or verb == "doing":
+        verb += random.choice(used_words["determiner"]) + random.choice(used_words["noun"])
+    return verb
 
 def word_processor(tags):
     global used_words
@@ -57,6 +63,8 @@ def word_processor(tags):
                 used_words["interjection"].append(word[0].lower())
             elif word[1][0] == "W":
                 used_words["question_word"].append(word[0].lower())
+            elif word[1][0] == "DT":
+                used_words["determiner"].append(word[0].lower())
     #print used_words
     #used for debug purposes only
 
@@ -86,18 +94,20 @@ def statement():
                     phrase += " " + random.choice(used_words["adverb"]) + " " + subprocess.check_output(['nodejs','conjugate.js',random.choice(used_words["verb"]),'present']).rstrip() + "."
         else:
             #adjective exists
-            phrase += " " + random.choice(used_words["adjective"]) + " " +  chosen_noun[0]
+            phrase += " " + random.choice(used_words["adjective"]) + " " +  chosen_noun[0] + " "
             if len(used_words["adverb"]) == 0:
                 if chosen_noun[1][0][1][-1] == 'S':
-                    phrase += " " +  subprocess.check_output(['nodejs','conjugate.js',random.choice(used_words["verb"]),'infinitive']).rstrip() + "."
+                    phrase += conjugator("infinitive") + "."
                 else:
-                    phrase += " " + subprocess.check_output(['nodejs','conjugate.js',random.choice(used_words["verb"]),'present']).rstrip() + "."
+                    phrase += + conjugator("present") + "."
 
             else:
+                phrase += random.choice(used_words["adverb"]) + " "
+
                 if chosen_noun[1][0][1][-1] == 'S':
-                    phrase += " " + random.choice(used_words["adverb"]) + " " + subprocess.check_output(['nodejs','conjugate.js',random.choice(used_words["verb"]),'infinitive']).rstrip() + "."
+                    phrase += conjugator("infinitive") + "."
                 else:
-                    phrase += " " + random.choice(used_words["adverb"]) + " " + subprocess.check_output(['nodejs','conjugate.js',random.choice(used_words["verb"]),'present']).rstrip() + "."
+                    phrase += conjugator("present") + "."
 
     #phrase = "The " + random.choice(used_words["adjective"]) + " " + random.choice(used_words["noun"]) + " " + random.choice(used_words["adverb"]) + " " + random.choice(used_words["verb"]) + "."
     return phrase
@@ -156,6 +166,20 @@ def main():
         human_response = str(raw_input("> "))
         if human_response == "exit":
             close()
+        elif human_response == "new topic":
+            used_words = {
+                    "noun":[] ,
+                    "pronoun":[] ,
+                    "verb":[] ,
+                    "adjective":[] ,
+                    "adverb":[] ,
+                    "preposition":[] ,
+                    "conjunction":[] ,
+                    "interjection":[] ,
+                    "question_word":["Who"],
+                    "determiner": ["a", "the"]
+
+                    }            
         else:
             phrasefix = Decontract(human_response)
         tags = nltk.pos_tag(phrasefix.decontract())
@@ -163,8 +187,10 @@ def main():
 
         word_processor(tags)
         bot_response = phrasemaker()
-        speech = subprocess.Popen(['espeak',bot_response])
+        subprocess.call(['espeak', '-v','en-scottish','-p','85',human_response])
         print bot_response
+        subprocess.call(['espeak',bot_response])
+
 try:
     main()
 except (EOFError, KeyboardInterrupt):
