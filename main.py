@@ -1,14 +1,12 @@
 from __future__ import division
 
 #natural language toolkit
-import nltk,sys,random,subprocess,pickle,enchant
+import nltk,sys,random,subprocess,enchant
 from contractions import Decontract
 #word_history = open('words.json', 'a+'))
 #get this working plzroces
 dictionary = enchant.Dict("en_US")
-known_words = open('words', 'r+')
-#used_words = pickle.load(known_words)
-#print used_words
+
 used_words = {
         "noun":[] ,
         "pronoun":[] ,
@@ -22,8 +20,7 @@ used_words = {
 
         }
 def close():
-    pickle.dump(used_words, known_words)
-    known_words.close()
+
     sys.exit()
 
 
