@@ -20,8 +20,14 @@ used_words = {
 
         }
 def close():
-
     sys.exit()
+def user_said_question(human_response):
+    qtype = subprocess.check_output(['nodejs','questions.js', str(human_response)]).rstrip()
+    if qtype == "YN":
+        return True
+    else:
+        return False
+
 
 
 def word_processor(tags):
@@ -127,16 +133,22 @@ def question():
                 phrase += "is " + noun_choice[0] + "?"
 
     return phrase
+
 def phrasemaker():
-    q = question()
-    s = statement()
-    phrases = [q, s]
-    phrase = random.choice(phrases)
+    global human_response
+    if not user_said_question(human_response):
+        q = question()
+        s = statement()
+        phrases = [q, s]
+        phrase = random.choice(phrases)
+    else:
+        phrase = random.choice(["Yes","No"])
     return phrase
 
 
+
 def main():
-    global tags
+    global tags, human_response
     init_speech = "Type 'exit' to stop talking\n\n\nHello, how may I help you?"
     print init_speech
     speech = subprocess.Popen(['espeak',init_speech])
