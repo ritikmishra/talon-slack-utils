@@ -101,6 +101,8 @@ def question():
 
     if len(used_words["verb"]) == 0:
         phrase = "What are you doing?"
+    elif len(used_words["noun"]) == 0:
+        phrase = "What is your favorite thing to eat?"
     elif len(used_words["adverb"]) == 0:
         phrase = "How do people " + random.choice(used_words["verb"]) + " the " + random.choice(used_words["noun"]) + "?"
     else:
