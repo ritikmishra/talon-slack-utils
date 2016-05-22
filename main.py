@@ -83,9 +83,9 @@ def statement():
             phrase += " " + random.choice(used_words["adjective"]) + " " +  chosen_noun[0]
             if len(used_words["adverb"]) == 0:
                 if chosen_noun[1][0][1][-1] == 'S':
-                    phrase += " " + random.choice(used_words["adverb"]) + " " + subprocess.check_output(['nodejs','conjugate.js',random.choice(used_words["verb"]),'infinitive']).rstrip() + "."
+                    phrase += " " +  subprocess.check_output(['nodejs','conjugate.js',random.choice(used_words["verb"]),'infinitive']).rstrip() + "."
                 else:
-                    phrase += " " + random.choice(used_words["adverb"]) + " " + subprocess.check_output(['nodejs','conjugate.js',random.choice(used_words["verb"]),'present']).rstrip() + "."
+                    phrase += " " + subprocess.check_output(['nodejs','conjugate.js',random.choice(used_words["verb"]),'present']).rstrip() + "."
 
             else:
                 if chosen_noun[1][0][1][-1] == 'S':
