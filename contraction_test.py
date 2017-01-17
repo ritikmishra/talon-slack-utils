@@ -10,13 +10,13 @@ fixer = Decontract(phrase)
 print fixer.decontract()
 
 #Test 3
-phrase = "I don't want to have herpes"
+phrase = "I don't want to have a car"
 fixer = Decontract(phrase)
 print fixer.decontract()
 #returns tokens
 
 
 #Test 4
-phrase = "Bob's herpes hadn't yet spread from person to person"
+phrase = "Bob's bad news hadn't yet spread through the populace"
 fixer = Decontract(phrase)
 print fixer.decontract()
