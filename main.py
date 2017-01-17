@@ -5,193 +5,157 @@ import nltk,sys,random,subprocess,enchant
 from contractions import Decontract
 #word_history = open('words.json', 'a+'))
 #get this working plzroces
-dictionary = enchant.Dict("en_US")
 
-used_words = {
-        "noun":[] ,
-        "pronoun":[] ,
-        "verb":[] ,
-        "adjective":[] ,
-        "adverb":[] ,
-        "preposition":[] ,
-        "conjunction":[] ,
-        "interjection":[] ,
-        "question_word":["Who"],
-        "determiner": ["a", "the"]
+class Talker:
+    def __init__(self):
+        self.dictionary = enchant.Dict("en_US")
 
-        }
-def close():
-    sys.exit()
-def user_said_question(human_response):
-    qtype = subprocess.check_output(['nodejs','questions.js', str(human_response)]).rstrip()
-    if qtype == "YN":
-        return True
-    else:
-        return False
+        self.used_words = {
+                "noun":[] ,
+                "pronoun":[] ,
+                "verb":[] ,
+                "adjective":[] ,
+                "adverb":[] ,
+                "preposition":[] ,
+                "conjunction":[] ,
+                "interjection":[] ,
+                "question_word":["Who"],
+                "determiner": ["a", "the"]
 
-def conjugator(form):
-    global used_words
-    verb = subprocess.check_output(['nodejs','conjugate.js',random.choice(used_words["verb"]),form]).rstrip()
-    if verb == "does" or verb == "makes" or verb == "doing":
-        verb += random.choice(used_words["determiner"]) + random.choice(used_words["noun"])
-    return verb
+                }
+    def __str__(self):
+        return self.used_words
 
-def word_processor(tags):
-    global used_words
-    #print "funct called"
-    for word in tags:
-        #print word
-
-        if dictionary.check(word[0]):
-
-            if word[1][0] == "N":
-                used_words["noun"].append(word[0].lower())
-
-            elif word[1][0:2] == "PR":
-                used_words["pronoun"].append(word[0])
-            elif (word[1][0:2] == "VB" or word[1][0:2] == "MD") and word[0] != "would" and word[0] != "could" and word[0] != "should"  :
-                used_words["verb"].append(subprocess.check_output(['nodejs','conjugate.js',word[0],'infinitive']).rstrip())
-            elif word[1][0:2] == "JJ":
-                used_words["adjective"].append(word[0].lower())
-            elif word[1][0:2] == "RB":
-                used_words["adverb"].append(word[0].lower())
-            elif word[1][0:2] == "IN":
-                used_words["preposition"].append(word[0].lower())
-            elif word[1][0:2] == "CC":
-                used_words["conjunction"].append(word[0].lower())
-            elif word[1][0:2] == "UH":
-                used_words["interjection"].append(word[0].lower())
-            elif word[1][0] == "W":
-                used_words["question_word"].append(word[0].lower())
-            elif word[1][0] == "DT":
-                used_words["determiner"].append(word[0].lower())
-    #print used_words
-    #used for debug purposes only
-
-def statement():
-    global used_words
-    if len(used_words["verb"]) == 0:
-        phrase = "What are you doing?"
-    elif len(used_words["noun"]) == 0:
-        phrase = "Tell me what I look like."
-    else:
-        phrase = "The "
-        chosen_noun = [random.choice(used_words["noun"]),None]
-        chosen_noun[1] = nltk.pos_tag(nltk.word_tokenize(chosen_noun[0]))
-        if len(used_words["adjective"]) == 0:
-            #adjective not exist
-
-            phrase += chosen_noun[0]
-            if len(used_words["adverb"]) == 0:
-                if chosen_noun[1][0][1][-1] == 'S':
-                    phrase += " " + subprocess.check_output(['nodejs','conjugate.js',random.choice(used_words["verb"]),'infinitive']).rstrip() + "."
-                else:
-                    phrase += " " + subprocess.check_output(['nodejs','conjugate.js',random.choice(used_words["verb"]),'present']).rstrip() + "."
-            else:
-                if chosen_noun[1][0][1][-1] == 'S':
-                    phrase += " " + random.choice(used_words["adverb"]) + " " + subprocess.check_output(['nodejs','conjugate.js',random.choice(used_words["verb"]),'infinitive']).rstrip() + "."
-                else:
-                    phrase += " " + random.choice(used_words["adverb"]) + " " + subprocess.check_output(['nodejs','conjugate.js',random.choice(used_words["verb"]),'present']).rstrip() + "."
+    def user_said_question(self, human_response):
+        self.qtype = subprocess.check_output(['nodejs','questions.js', str(human_response)]).strip().decode("UTF-8")
+        if self.qtype == "YN":
+            return True
         else:
-            #adjective exists
-            phrase += " " + random.choice(used_words["adjective"]) + " " +  chosen_noun[0] + " "
-            if len(used_words["adverb"]) == 0:
-                if chosen_noun[1][0][1][-1] == 'S':
-                    phrase += conjugator("infinitive") + "."
-                else:
-                    phrase += + conjugator("present") + "."
+            return False
 
-            else:
-                phrase += random.choice(used_words["adverb"]) + " "
+    def conjugator(self, form):
+        self.verb = subprocess.check_output(['nodejs','conjugate.js',random.choice(self.used_words["verb"]),form]).strip().decode("UTF-8")
+        if self.verb == "does" or self.verb == "makes" or self.verb == "doing":
+            self.verb +=  " " + random.choice(self.used_words["determiner"]) + " " + random.choice(self.used_words["noun"])
+        return self.verb
 
-                if chosen_noun[1][0][1][-1] == 'S':
-                    phrase += conjugator("infinitive") + "."
-                else:
-                    phrase += conjugator("present") + "."
+    def word_processor(self, tags):
+        for word in tags:
+            #print(word)
+            if self.dictionary.check(word[0]):
 
-    #phrase = "The " + random.choice(used_words["adjective"]) + " " + random.choice(used_words["noun"]) + " " + random.choice(used_words["adverb"]) + " " + random.choice(used_words["verb"]) + "."
-    return phrase
-def question():
-    global used_words, tags
-    phrase = random.choice(used_words["question_word"]) + " "
-
-    if len(used_words["verb"]) == 0:
-        phrase = "What are you doing?"
-    elif len(used_words["noun"]) == 0:
-        phrase = "What is your favorite thing to eat?"
-    elif len(used_words["adverb"]) == 0:
-        phrase = "How do people " + random.choice(used_words["verb"]) + " the " + random.choice(used_words["noun"]) + "?"
-    else:
-        z = random.randint(1,2)
-        if z == 1:
-            phrase += random.choice(used_words["verb"]) +  " " + random.choice(used_words["adverb"]) + "?"
-        else:
-            noun_options = []
-            for word in tags:
                 if word[1][0] == "N":
-                    noun_options.append(word[0])
-                else:
-                    try:
-                        noun_options.append(random.choice(used_words['noun']))
-                    except IndexError:
-                        noun_options.append(random.choice(used_words['pronoun']))
-            noun_choice =  [random.choice(noun_options),None]
-            noun_choice[1] = nltk.pos_tag(nltk.word_tokenize(noun_choice[0]))
-            if noun_choice[1][0][1][-1] == "S":
-                phrase += "are " + noun_choice[0] + "?"
-            else:
-                phrase += "is " + noun_choice[0] + "?"
+                    self.used_words["noun"].append(word[0].lower())
+                elif word[1][0:2] == "PR":
+                    self.used_words["pronoun"].append(word[0])
+                elif (word[1][0:2] == "VB" or word[1][0:2] == "MD") and word[0] != "would" and word[0] != "could" and word[0] != "should"  :
+                    self.used_words["verb"].append(subprocess.check_output(['nodejs','conjugate.js',word[0],'infinitive']).strip().decode("UTF-8"))
+                elif word[1][0:2] == "JJ":
+                    self.used_words["adjective"].append(word[0].lower())
+                elif word[1][0:2] == "RB":
+                    self.used_words["adverb"].append(word[0].lower())
+                elif word[1][0:2] == "IN":
+                    self.used_words["preposition"].append(word[0].lower())
+                elif word[1][0:2] == "CC":
+                    self.used_words["conjunction"].append(word[0].lower())
+                elif word[1][0:2] == "UH":
+                    self.used_words["interjection"].append(word[0].lower())
+                elif word[1][0] == "W":
+                    self.used_words["question_word"].append(word[0].lower())
+                elif word[1][0] == "DT":
+                    self.used_words["determiner"].append(word[0].lower())
+        # print(self.used_words)
+        #used for debug purposes only
 
-    return phrase
-
-def phrasemaker():
-    global human_response
-    if not user_said_question(human_response):
-        q = question()
-        s = statement()
-        phrases = [q, s]
-        phrase = random.choice(phrases)
-    else:
-        phrase = random.choice(["Yes","No"])
-    return phrase
-
-
-
-def main():
-    global tags, human_response
-    init_speech = "Type 'exit' to stop talking\n\n\nHello, how may I help you?"
-    print init_speech
-    speech = subprocess.Popen(['espeak',init_speech])
-    while True:
-        human_response = str(raw_input("> "))
-        if human_response == "exit":
-            close()
-        elif human_response == "new topic":
-            used_words = {
-                    "noun":[] ,
-                    "pronoun":[] ,
-                    "verb":[] ,
-                    "adjective":[] ,
-                    "adverb":[] ,
-                    "preposition":[] ,
-                    "conjunction":[] ,
-                    "interjection":[] ,
-                    "question_word":["Who"],
-                    "determiner": ["a", "the"]
-
-                    }            
+    def statement(self):
+        """Generate a statement using the words in self.used_words"""
+        if len(self.used_words["verb"]) == 0:
+            self.phrase = "What are you doing?"
+        elif len(self.used_words["noun"]) == 0:
+            self.phrase = "Tell me what I look like."
         else:
-            phrasefix = Decontract(human_response)
-        tags = nltk.pos_tag(phrasefix.decontract())
-        #tags = nltk.pos_tag(nltk.word_tokenize(human_response))
+            self.phrase = random.choice(self.used_words["determiner"]).capitalize()
+            self.chosen_noun = [random.choice(self.used_words["noun"]),None]
+            self.chosen_noun[1] = nltk.pos_tag(nltk.word_tokenize(self.chosen_noun[0]))
 
-        word_processor(tags)
-        bot_response = phrasemaker()
-        subprocess.call(['espeak', '-v','en-scottish','-p','85',human_response])
-        print bot_response
-        subprocess.call(['espeak',bot_response])
+            # Pick adjective if possible
+            if len(self.used_words["adjective"]) > 0:
+                self.phrase += " " + random.choice(self.used_words["adjective"])
 
-try:
-    main()
-except (EOFError, KeyboardInterrupt):
-    close()
+            # Throw in noun
+            self.phrase += " " + self.chosen_noun[0]
+
+            # Throw in adverb if possible
+            if len(self.used_words["adverb"]) > 0:
+                # adverbs
+                self.phrase += " " + random.choice(self.used_words["adverb"])
+
+            # Throw in verb and ensure subject-verb agreement
+            if self.chosen_noun[1][0][1][-1] == 'S':
+                self.phrase += " " + self.conjugator("infinitive") + "."
+            else:
+                self.phrase += " " + self.conjugator("present") + "."
+
+        return self.phrase
+
+    def question(self):
+        """Generate a question using the words in self.used_words"""
+        self.phrase = random.choice(self.used_words["question_word"]) + " "
+
+        if len(self.used_words["verb"]) == 0:
+            self.phrase = "What are you doing?"
+        elif len(self.used_words["noun"]) == 0:
+            self.phrase = "What is your favorite thing to eat?"
+        elif len(self.used_words["adverb"]) == 0:
+            self.phrase = "How do people " + random.choice(self.used_words["verb"]) + " the " + random.choice(self.used_words["noun"]) + "?"
+        else:
+            self.type = random.randint(1,2)
+            if self.type == 1:
+                # Who eats messily?
+                self.phrase += random.choice(self.used_words["verb"]) +  " " + random.choice(self.used_words["adverb"]) + "?"
+            else:
+                # Who
+                self.noun_options = []
+                for word in self.tags:
+                    if word[1][0] == "N":
+                        self.noun_options.append(word[0])
+                    else:
+                        try:
+                            self.noun_options.append(random.choice(self.used_words['noun']))
+                        except IndexError:
+                            self.noun_options.append(random.choice(self.used_words['pronoun']))
+                self.noun_choice =  [random.choice(self.noun_options),None]
+                self.noun_choice[1] = nltk.pos_tag(nltk.word_tokenize(self.noun_choice[0]))
+                if self.noun_choice[1][0][1][-1] == "S":
+                    self.phrase += "are " + self.noun_choice[0] + "?"
+                else:
+                    self.phrase += "is " + self.noun_choice[0] + "?"
+
+        return self.phrase
+
+    def phrasemaker(self, human_response):
+        if not self.user_said_question(human_response):
+            self.q = self.question()
+            self.s = self.statement()
+            self.phrases = [self.q, self.s]
+            self.phrase = random.choice(self.phrases)
+        else:
+            self.phrase = random.choice(["Yes","No"])
+        return self.phrase
+
+
+
+    def speak(self, response):
+        self.phrasefix = Decontract(response)
+        self.tags = nltk.pos_tag(self.phrasefix.decontract())
+        self.word_processor(self.tags)
+        return self.phrasemaker(response)
+
+if __name__ == "__main__":
+    try:
+        bot = Talker()
+        while True:
+            response = str(input("> "))
+            print(bot.speak(response))
+    except (EOFError, KeyboardInterrupt):
+        sys.exit()
