@@ -1,6 +1,12 @@
 import tornado.ioloop
 import tornado.web
 from main import Talker
+import os
+# url = "https"
+try:
+    PORT = os.environ['PORT']
+except KeyError:
+    PORT = 8888
 def paramsfromrequest(request):
     """Changes the format of the HTTP request parameters so that they may be more easily used"""
     params = request.arguments
@@ -19,12 +25,17 @@ talker = Talker()
 class MainHandler(tornado.web.RequestHandler):
     def prepare(self):
         self.params = paramsfromrequest(self.request)
-    def get(self):
+        self.words = []
         try:
-            self.write(talker.speak(self.params["text"]))
+            for word in self.params['text']:
+                if (not word[0] == "<") and (not word[-1] == ">"):
+                    self.words.append(word)
+            self.words = " ".join(self.words)
         except KeyError:
-            self.write("GET a string under the parameter of 'text', please")
-
+            self.words = " "
+    def post(self):
+        self.write(talker.speak(self.words)
+        
 def make_app():
     return tornado.web.Application([
         (r"/", MainHandler),
@@ -32,5 +43,5 @@ def make_app():
 
 if __name__ == "__main__":
     app = make_app()
-    app.listen(8888)
+    app.listen(PORT)
     tornado.ioloop.IOLoop.current().start()

@@ -1,28 +1,34 @@
 from __future__ import division
 
 #natural language toolkit
-import nltk,sys,random,subprocess,enchant
+import nltk,sys,random,subprocess,enchant,json
 from contractions import Decontract
-#word_history = open('words.json', 'a+'))
-#get this working plzroces
+
 
 class Talker:
     def __init__(self):
         self.dictionary = enchant.Dict("en_US")
+        with open("./words.json", "r+") as self.wordfile:
+            self.used_words = json.loads(self.wordfile.read())
+        for key in self.used_words:
+            self.seen_words = []
+            for word in self.used_words[key]:
+                if not word in self.seen_words:
+                    self.seen_words.append(word)
+            self.used_words[key] = self.seen_words
+        with open("./words.json", "r+") as wordfile:
+            json.dump(self.used_words, wordfile)
 
-        self.used_words = {
-                "noun":[] ,
-                "pronoun":[] ,
-                "verb":[] ,
-                "adjective":[] ,
-                "adverb":[] ,
-                "preposition":[] ,
-                "conjunction":[] ,
-                "interjection":[] ,
-                "question_word":["Who"],
-                "determiner": ["a", "the"]
+        try:
+            self.test = nltk.word_tokenize("test sentence")
+        except LookupError:
+            nltk.download("punkt")
+        try:
+            self.test = nltk.pos_tag(self.test)
+        except LookupError:
+            nltk.download("maxent_treebank_pos_tagger")
+            nltk.download("hmm_treebank_pos_tagger")
 
-                }
     def __str__(self):
         return self.used_words
 
@@ -40,32 +46,33 @@ class Talker:
         return self.verb
 
     def word_processor(self, tags):
-        for word in tags:
+        for x, word in enumerate(tags):
             #print(word)
             if self.dictionary.check(word[0]):
 
-                if word[1][0] == "N":
+                if (word[1][0] == "N") and not (word[0] in self.used_words["noun"]):
                     self.used_words["noun"].append(word[0].lower())
-                elif word[1][0:2] == "PR":
+                elif word[1][0:2] == "PR" and not (word[0] in self.used_words["pronoun"]):
                     self.used_words["pronoun"].append(word[0])
-                elif (word[1][0:2] == "VB" or word[1][0:2] == "MD") and word[0] != "would" and word[0] != "could" and word[0] != "should"  :
+                elif (word[1][0:2] == "VB" or word[1][0:2] == "MD") and word[0] != "would" and word[0] != "could" and word[0] != "should" and not word[0] in self.used_words["verb"]:
                     self.used_words["verb"].append(subprocess.check_output(['nodejs','conjugate.js',word[0],'infinitive']).strip().decode("UTF-8"))
-                elif word[1][0:2] == "JJ":
+                elif word[1][0:2] == "JJ" and not (word[0] in self.used_words["adjective"]):
                     self.used_words["adjective"].append(word[0].lower())
-                elif word[1][0:2] == "RB":
+                elif word[1][0:2] == "RB" and not (word[0] in self.used_words["adverb"]):
                     self.used_words["adverb"].append(word[0].lower())
-                elif word[1][0:2] == "IN":
+                elif word[1][0:2] == "IN" and not (word[0] in self.used_words["preposition"]):
                     self.used_words["preposition"].append(word[0].lower())
-                elif word[1][0:2] == "CC":
+                elif word[1][0:2] == "CC" and not (word[0] in self.used_words["conjunction"]):
                     self.used_words["conjunction"].append(word[0].lower())
-                elif word[1][0:2] == "UH":
+                elif word[1][0:2] == "UH" and not (word[0] in self.used_words["interjection"]):
                     self.used_words["interjection"].append(word[0].lower())
-                elif word[1][0] == "W":
+                elif word[1][0] == "W" and not (word[0] in self.used_words["question_word"]):
                     self.used_words["question_word"].append(word[0].lower())
-                elif word[1][0] == "DT":
+                elif word[1][0] == "DT" and not (word[0] in self.used_words["determiner"]):
                     self.used_words["determiner"].append(word[0].lower())
-        # print(self.used_words)
-        #used for debug purposes only
+            # print("Tag #" + str(x) + " scanned")
+        with open("./words.json", "r+") as wordfile:
+            json.dump(self.used_words, wordfile)
 
     def statement(self):
         """Generate a statement using the words in self.used_words"""
@@ -153,6 +160,7 @@ class Talker:
 
 if __name__ == "__main__":
     try:
+        print("Loading. . .")
         bot = Talker()
         while True:
             response = str(input("> "))
