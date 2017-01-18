@@ -34,8 +34,8 @@ class MainHandler(tornado.web.RequestHandler):
         except KeyError:
             self.words = " "
     def post(self):
-        self.write(talker.speak(self.words)
-        
+        self.write(talker.speak(self.words))
+
 def make_app():
     return tornado.web.Application([
         (r"/", MainHandler),
