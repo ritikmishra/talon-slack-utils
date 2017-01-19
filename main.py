@@ -27,14 +27,14 @@ class Talker:
         return self.used_words
 
     def user_said_question(self, human_response):
-        self.qtype = subprocess.check_output(['nodejs','questions.js', str(human_response)]).strip().decode("UTF-8")
+        self.qtype = subprocess.check_output(['node','questions.js', str(human_response)]).strip().decode("UTF-8")
         if self.qtype == "YN":
             return True
         else:
             return False
 
     def conjugator(self, form):
-        self.verb = subprocess.check_output(['nodejs','conjugate.js',random.choice(self.used_words["verb"]),form]).strip().decode("UTF-8")
+        self.verb = subprocess.check_output(['node','conjugate.js',random.choice(self.used_words["verb"]),form]).strip().decode("UTF-8")
         if self.verb == "does" or self.verb == "makes" or self.verb == "doing":
             self.verb +=  " " + random.choice(self.used_words["determiner"]) + " " + random.choice(self.used_words["noun"])
         return self.verb
@@ -49,7 +49,7 @@ class Talker:
             elif word[1][0:2] == "PR" and not (word[0] in self.used_words["pronoun"]):
                 self.used_words["pronoun"].append(word[0])
             elif (word[1][0:2] == "VB" or word[1][0:2] == "MD") and word[0] != "would" and word[0] != "could" and word[0] != "should" and not word[0] in self.used_words["verb"]:
-                self.used_words["verb"].append(subprocess.check_output(['nodejs','conjugate.js',word[0],'infinitive']).strip().decode("UTF-8"))
+                self.used_words["verb"].append(subprocess.check_output(['node','conjugate.js',word[0],'infinitive']).strip().decode("UTF-8"))
             elif word[1][0:2] == "JJ" and not (word[0] in self.used_words["adjective"]):
                 self.used_words["adjective"].append(word[0].lower())
             elif word[1][0:2] == "RB" and not (word[0] in self.used_words["adverb"]):
