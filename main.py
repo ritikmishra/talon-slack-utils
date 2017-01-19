@@ -14,6 +14,7 @@ class Talker:
             self.test = nltk.word_tokenize("test sentence")
         except LookupError:
             nltk.download("punkt")
+            self.test = nltk.word_tokenize("test sentence")
         try:
             self.test = nltk.pos_tag(self.test)
         except LookupError:
