@@ -3,20 +3,12 @@ from __future__ import division
 #natural language toolkit
 import nltk,sys,random,subprocess,json
 from contractions import Decontract
-
+from nltk.corpus import brown
 
 class Talker:
     def __init__(self):
         with open("./words.json", "r+") as self.wordfile:
             self.used_words = json.loads(self.wordfile.read())
-        for key in self.used_words:
-            self.seen_words = []
-            for word in self.used_words[key]:
-                if not word in self.seen_words:
-                    self.seen_words.append(word)
-            self.used_words[key] = self.seen_words
-        with open("./words.json", "r+") as wordfile:
-            json.dump(self.used_words, wordfile)
 
         try:
             self.test = nltk.word_tokenize("test sentence")
@@ -69,7 +61,8 @@ class Talker:
                 self.used_words["question_word"].append(word[0].lower())
             elif word[1][0] == "DT" and not (word[0] in self.used_words["determiner"]):
                 self.used_words["determiner"].append(word[0].lower())
-            # print("Tag #" + str(x) + " scanned")
+            if x % 5000 == 0:
+                print("Tag #" + str(x) + " scanned")
         with open("./words.json", "r+") as wordfile:
             json.dump(self.used_words, wordfile)
 
@@ -120,10 +113,10 @@ class Talker:
                 # Who eats messily?
                 self.phrase += random.choice(self.used_words["verb"]) +  " " + random.choice(self.used_words["adverb"]) + "?"
             else:
-                # Who
-                self.noun_options = []
+                #
+                self.noun_options = self.used_words["noun"]
                 for word in self.tags:
-                    if word[1][0] == "N":
+                    if word[1][0] == "N" and not word[0] in self.noun_options:
                         self.noun_options.append(word[0])
                     else:
                         try:

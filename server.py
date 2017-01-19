@@ -7,6 +7,7 @@ try:
     PORT = os.environ['PORT']
 except KeyError:
     PORT = 8888
+
 def paramsfromrequest(request):
     """Changes the format of the HTTP request parameters so that they may be more easily used"""
     params = request.arguments
@@ -35,6 +36,8 @@ class MainHandler(tornado.web.RequestHandler):
             self.words = " "
     def post(self):
         self.write(talker.speak(self.words))
+    def get(self):
+        self.write(talker.speak(self.words))
 
 def make_app():
     return tornado.web.Application([
@@ -44,4 +47,5 @@ def make_app():
 if __name__ == "__main__":
     app = make_app()
     app.listen(PORT)
+    print("Listening on port " + str(PORT))
     tornado.ioloop.IOLoop.current().start()
