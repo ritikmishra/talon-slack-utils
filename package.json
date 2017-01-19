@@ -1,0 +1,22 @@
+{
+  "name": "nltk-sentence-generator",
+  "version": "0.5.0",
+  "description": "Uses words from brown corpus to make sentences and questions",
+  "main": "server.py",
+  "scripts": {
+    "test": "python server.py"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/ritikmishra/curipy.git"
+  },
+  "keywords": [
+    "python"
+  ],
+  "author": "Ritik Mishra",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/ritikmishra/curipy/issues"
+  },
+  "homepage": "https://github.com/ritikmishra/curipy#readme"
+}

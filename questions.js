@@ -12,7 +12,7 @@
 // ** May I tell you a joke?
 var args = process.argv.slice(2);
 var question = args[0]
-var ra = require("/usr/lib/node_modules/qtypes/lib/ruleClassify.js");
+var ra = require("./node_modules/qtypes/lib/ruleClassify.js");
 
 new ra(function(q) {
   var qtype = q.questionType(question);
