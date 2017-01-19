@@ -20,6 +20,7 @@ class Talker:
         except LookupError:
             nltk.download("maxent_treebank_pos_tagger")
             nltk.download("hmm_treebank_pos_tagger")
+            nltk.download("averaged_perceptron_tagger")
 
     def __str__(self):
         return self.used_words
