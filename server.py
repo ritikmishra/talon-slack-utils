@@ -26,6 +26,7 @@ talker = Talker()
 class MainHandler(tornado.web.RequestHandler):
     def prepare(self):
         self.params = paramsfromrequest(self.request)
+        self.resjson = {"response_type":"in_channel"}
         self.words = []
         try:
             for word in self.params['text']:
@@ -34,10 +35,13 @@ class MainHandler(tornado.web.RequestHandler):
             self.words = " ".join(self.words)
         except KeyError:
             self.words = " "
+        self.add_header("Content-type", "application/json")
     def post(self):
-        self.write(talker.speak(self.words))
+        self.resjson['text'] = talker.speak(self.words)
+        self.write(self.resjson)
     def get(self):
-        self.write(talker.speak(self.words))
+        self.resjson['text'] = talker.speak(self.words)
+        self.write(self.resjson)
 
 def make_app():
     return tornado.web.Application([
