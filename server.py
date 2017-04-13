@@ -32,6 +32,17 @@ class BTCExchangeRateHandler(tornado.web.RequestHandler):
 
     def prepare(self):
         """Prepare for handling the request."""
+
+        self.currencies_expanded = ["New Zealand Dollar", "Swedish Krona", "Icelandic Krona",
+                                    "Japanese Yen", "Singapore Dollar", "Euro", "British Pound",
+                                    "New Taiwan Dollar", "Chinese Yuan", "Canadian Dollar", "Polish Zloty",
+                                    "Danish Krone", "South Korean Won", "Australian Dollar",
+                                    "Chilean Peso", "Indian Rupee", "Swiss Franc", "Thai Bhat",
+                                    "Brazilian Real", "US Dollar", "Russian Ruble", "Hong Kong Dollar"]
+
+        self.currencies_abbreviated = ["NZD", "SEK", "ISK", "JPY", "SGD", "EUR", "GBP", "TWD", "CNY", "CAD", "PLN",
+                                       "DKK", "KRW", "AUD", "CLP", "INR", "CHF", "THB", "BRL", "USD", "RUB", "HKD"]
+
         self.params = paramsfromrequest(self.request)
         self.resjson = {"response_type": "in_channel"}
         if len(self.params['text']) == 0:
@@ -40,6 +51,10 @@ class BTCExchangeRateHandler(tornado.web.RequestHandler):
             self.currency = self.params['text']
         self.currency = self.currency.upper()
         self.add_header("Content-type", "application/json")
+
+    def expandCurrency(self, abbv):
+        """Expand currency abbreviations."""
+        return self.currencies_expanded[self.currencies_abbreviated.index(abbv)]
 
     def post(self):
         """Handle POST requests."""
@@ -53,9 +68,9 @@ class BTCExchangeRateHandler(tornado.web.RequestHandler):
 
         try:
             self.data = self.all_data[self.currency]
-            self.resjson['text'] = "1 BTC is equal to " + str(self.data["last"]) + " " + self.currency
+            self.resjson['text'] = "1 BitCoin is equal to " + str(self.data["last"]) + " " + self.expandCurrency(self.currency)
 
-        except KeyError:
+        except (KeyError, ValueError, IndexError):
             self.resjson['text'] = "I cannot find data on your currency. I can find data on the following currencies: " + ", ".join(list(self.all_data.keys()))
 
         except Exception as e:
