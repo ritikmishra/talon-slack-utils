@@ -2,8 +2,13 @@
 
 Some useful slack utils
 
-Includes
+###Includes
 
 * Fun \(The /think endpoint)
 
 * BitCoin data \(the /exchange endpoint)
+
+
+Dependencies inside `runtime.txt`
+
+Designed to run on Heroku
