@@ -1,12 +1,20 @@
+"""Create fake english sentences."""
 from __future__ import division
 
-#natural language toolkit
-import nltk,sys,random,subprocess,json
+
+import nltk
+import sys
+import random
+import subprocess
+import json
 from contractions import Decontract
-from nltk.corpus import brown
+
 
 class Talker:
+    """The class that creates English sentences with bad grammar."""
+
     def __init__(self):
+        """Load word list, download necessary components."""
         with open("./words.json", "r+") as self.wordfile:
             self.used_words = json.loads(self.wordfile.read())
 
@@ -24,24 +32,32 @@ class Talker:
             nltk.download("averaged_perceptron_tagger")
 
     def __str__(self):
+        """Return all the words that can be used by the program to make sentences."""
         return self.used_words
 
     def user_said_question(self, human_response):
-        self.qtype = subprocess.check_output(['node','questions.js', str(human_response)]).strip().decode("UTF-8")
+        """Figure out if the user gave me a yes/no question."""
+        self.qtype = subprocess.check_output(['node', 'questions.js', str(human_response)]).strip().decode("UTF-8")
         if self.qtype == "YN":
             return True
         else:
             return False
 
     def conjugator(self, form):
-        self.verb = subprocess.check_output(['node','conjugate.js',random.choice(self.used_words["verb"]),form]).strip().decode("UTF-8")
+        """Conjugate verbs by passing them to a node script."""
+        self.verb = subprocess.check_output(['node', 'conjugate.js', random.choice(self.used_words["verb"]), form]).strip().decode("UTF-8")
         if self.verb == "does" or self.verb == "makes" or self.verb == "doing":
-            self.verb +=  " " + random.choice(self.used_words["determiner"]) + " " + random.choice(self.used_words["noun"])
+            self.verb += " " + random.choice(self.used_words["determiner"]) + " " + random.choice(self.used_words["noun"])
         return self.verb
 
     def word_processor(self, tags):
+        """
+        Process words that are given to me into separate parts of speech.
+
+        Don't worry if I'm too complex for you, baby.
+        """
         for x, word in enumerate(tags):
-            #print(word)
+            # print(word)
             # if self.dictionary.check(word[0]):
 
             if (word[1][0] == "N") and not (word[0] in self.used_words["noun"]):
@@ -49,7 +65,7 @@ class Talker:
             elif word[1][0:2] == "PR" and not (word[0] in self.used_words["pronoun"]):
                 self.used_words["pronoun"].append(word[0])
             elif (word[1][0:2] == "VB" or word[1][0:2] == "MD") and word[0] != "would" and word[0] != "could" and word[0] != "should" and not word[0] in self.used_words["verb"]:
-                self.used_words["verb"].append(subprocess.check_output(['node','conjugate.js',word[0],'infinitive']).strip().decode("UTF-8"))
+                self.used_words["verb"].append(subprocess.check_output(['node', 'conjugate.js', word[0], 'infinitive']).strip().decode("UTF-8"))
             elif word[1][0:2] == "JJ" and not (word[0] in self.used_words["adjective"]):
                 self.used_words["adjective"].append(word[0].lower())
             elif word[1][0:2] == "RB" and not (word[0] in self.used_words["adverb"]):
@@ -70,14 +86,14 @@ class Talker:
             json.dump(self.used_words, wordfile)
 
     def statement(self):
-        """Generate a statement using the words in self.used_words"""
+        """Generate a statement using the words in self.used_words."""
         if len(self.used_words["verb"]) == 0:
             self.phrase = "What are you doing?"
         elif len(self.used_words["noun"]) == 0:
             self.phrase = "Tell me what I look like."
         else:
             self.phrase = random.choice(self.used_words["determiner"]).capitalize()
-            self.chosen_noun = [random.choice(self.used_words["noun"]),None]
+            self.chosen_noun = [random.choice(self.used_words["noun"]), None]
             self.chosen_noun[1] = nltk.pos_tag(nltk.word_tokenize(self.chosen_noun[0]))
 
             # Pick adjective if possible
@@ -101,7 +117,7 @@ class Talker:
         return self.phrase
 
     def question(self):
-        """Generate a question using the words in self.used_words"""
+        """Generate a question using the words in self.used_words."""
         self.phrase = random.choice(self.used_words["question_word"]) + " "
 
         if len(self.used_words["verb"]) == 0:
@@ -111,10 +127,10 @@ class Talker:
         elif len(self.used_words["adverb"]) == 0:
             self.phrase = "How do people " + random.choice(self.used_words["verb"]) + " the " + random.choice(self.used_words["noun"]) + "?"
         else:
-            self.type = random.randint(1,2)
+            self.type = random.randint(1, 2)
             if self.type == 1:
                 # Who eats messily?
-                self.phrase += random.choice(self.used_words["verb"]) +  " " + random.choice(self.used_words["adverb"]) + "?"
+                self.phrase += random.choice(self.used_words["verb"]) + " " + random.choice(self.used_words["adverb"]) + "?"
             else:
                 #
                 self.noun_options = self.used_words["noun"]
@@ -126,7 +142,7 @@ class Talker:
                             self.noun_options.append(random.choice(self.used_words['noun']))
                         except IndexError:
                             self.noun_options.append(random.choice(self.used_words['pronoun']))
-                self.noun_choice =  [random.choice(self.noun_options),None]
+                self.noun_choice = [random.choice(self.noun_options), None]
                 self.noun_choice[1] = nltk.pos_tag(nltk.word_tokenize(self.noun_choice[0]))
                 if self.noun_choice[1][0][1][-1] == "S":
                     self.phrase += "are " + self.noun_choice[0] + "?"
@@ -136,22 +152,23 @@ class Talker:
         return self.phrase
 
     def phrasemaker(self, human_response):
+        """Make a phrase to give to the human."""
         if not self.user_said_question(human_response):
             self.q = self.question()
             self.s = self.statement()
             self.phrases = [self.q, self.s]
             self.phrase = random.choice(self.phrases)
         else:
-            self.phrase = random.choice(["Yes","No"])
+            self.phrase = random.choice(["Yes", "No"])
         return self.phrase
 
-
-
     def speak(self, response):
+        """Learn words the human tells me and give them a response."""
         self.phrasefix = Decontract(response)
         self.tags = nltk.pos_tag(self.phrasefix.decontract())
         self.word_processor(self.tags)
         return self.phrasemaker(response)
+
 
 if __name__ == "__main__":
     try:
