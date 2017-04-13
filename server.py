@@ -32,7 +32,6 @@ class BTCExchangeRateHandler(tornado.web.RequestHandler):
 
     def prepare(self):
         """Prepare for handling the request."""
-
         self.currencies_expanded = ["New Zealand Dollar", "Swedish Krona", "Icelandic Krona",
                                     "Japanese Yen", "Singapore Dollar", "Euro", "British Pound",
                                     "New Taiwan Dollar", "Chinese Yuan", "Canadian Dollar", "Polish Zloty",
@@ -56,6 +55,16 @@ class BTCExchangeRateHandler(tornado.web.RequestHandler):
         """Expand currency abbreviations."""
         return self.currencies_expanded[self.currencies_abbreviated.index(abbv)]
 
+    def interlace(self, list_a, list_b):
+        """Interlace 2 lists."""
+        result = []
+        for x in range(len(list_a)):
+            pair = []
+            pair.append(list_a[x])
+            pair.append("(" + list_b[x] + ")")
+            result.append(" ".join(pair))
+        return result
+
     def post(self):
         """Handle POST requests."""
         try:
@@ -71,7 +80,7 @@ class BTCExchangeRateHandler(tornado.web.RequestHandler):
             self.resjson['text'] = "1 BitCoin is equal to " + str(self.data["last"]) + " " + self.expandCurrency(self.currency)
 
         except (KeyError, ValueError, IndexError):
-            self.resjson['text'] = "I cannot find data on your currency. I can find data on the following currencies: " + ", ".join(list(self.all_data.keys()))
+            self.resjson['text'] = "I cannot find data on your currency. I can find data on the following currencies: " + ", ".join(self.interlace(list(self.currencies_abbreviated), self.currencies_expanded))
 
         except Exception as e:
             self.resjson['text'] = str(e)
