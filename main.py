@@ -18,19 +18,6 @@ class Talker:
         with open("./words.json", "r+") as self.wordfile:
             self.used_words = json.loads(self.wordfile.read())
 
-        try:
-            self.test = nltk.word_tokenize("test sentence")
-        except LookupError:
-            nltk.download("punkt")
-            self.test = nltk.word_tokenize("test sentence")
-
-        try:
-            self.test = nltk.pos_tag(self.test)
-        except LookupError:
-            nltk.download("maxent_treebank_pos_tagger")
-            nltk.download("hmm_treebank_pos_tagger")
-            nltk.download("averaged_perceptron_tagger")
-
     def __str__(self):
         """Return all the words that can be used by the program to make sentences."""
         return self.used_words
