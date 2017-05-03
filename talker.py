@@ -19,7 +19,7 @@ class Talker:
         with open("./words.json", "r+") as self.wordfile:
             self.used_words = json.loads(self.wordfile.read())
         try:
-            test_tokens = nltk.tokenize("Test sentence")
+            test_tokens = nltk.word_tokenize("Test sentence")
             nltk.pos_tag(test_tokens)
         except LookupError:
             install()
