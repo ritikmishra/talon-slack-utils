@@ -2,7 +2,11 @@
 import tornado.ioloop
 import tornado.web
 import tornado.httpclient
-from main import Talker
+import tornado.testing
+from tornado import gen
+
+
+from talker import Talker
 import os
 # url = "https"
 try:
@@ -11,7 +15,7 @@ except KeyError:
     PORT = 8888
 
 
-def paramsfromrequest(request):
+def params_from_request(request):
     """Change the format of the HTTP request parameters so that they may be more easily used."""
     params_dict = {}
     for key, value in request.arguments.items():
@@ -42,7 +46,7 @@ class BTCExchangeRateHandler(tornado.web.RequestHandler):
         self.currencies_abbreviated = ["NZD", "SEK", "ISK", "JPY", "SGD", "EUR", "GBP", "TWD", "CNY", "CAD", "PLN",
                                        "DKK", "KRW", "AUD", "CLP", "INR", "CHF", "THB", "BRL", "USD", "RUB", "HKD"]
 
-        self.params = paramsfromrequest(self.request)
+        self.params = params_from_request(self.request)
         self.resjson = {"response_type": "in_channel"}
         if len(self.params['text']) == 0:
             self.currency = "USD"
@@ -51,11 +55,12 @@ class BTCExchangeRateHandler(tornado.web.RequestHandler):
         self.currency = self.currency.upper()
         self.add_header("Content-type", "application/json")
 
-    def expandCurrency(self, abbv):
+    def expand_currency_abbv(self, abbv):
         """Expand currency abbreviations."""
         return self.currencies_expanded[self.currencies_abbreviated.index(abbv)]
 
-    def interlace(self, list_a, list_b):
+    @staticmethod
+    def interlace(list_a, list_b):
         """Interlace 2 lists."""
         result = []
         for x in range(len(list_a)):
@@ -65,33 +70,23 @@ class BTCExchangeRateHandler(tornado.web.RequestHandler):
             result.append(" ".join(pair))
         return result
 
+    @gen.coroutine
     def post(self):
         """Handle POST requests."""
-        try:
-            self.http_client = tornado.httpclient.HTTPClient()
-            self.response = self.http_client.fetch("http://blockchain.info/ticker")
-            self.all_data = tornado.escape.json_decode(self.response.body)
+        def get_exchange_rate(given_response):
+            data = tornado.escape.json_decode(given_response.body)[self.currency]
+            return "1 BitCoin is equal to " + str(data["last"]) + " " + self.expand_currency_abbv(self.currency)
 
-        except tornado.httpclient.HTTPError as number:
-            self.resjson['text'] = "The Exchange Rate API we use gave us the following error code: " + str(number)
+        http_client = tornado.httpclient.AsyncHTTPClient()
+        response = yield http_client.fetch("http://blockchain.info/ticker")
+        self.resjson['text'] = get_exchange_rate(response)
+        self.write(self.resjson)
 
-        try:
-            self.data = self.all_data[self.currency]
-            self.resjson['text'] = "1 BitCoin is equal to " + str(self.data["last"]) + " " + self.expandCurrency(self.currency)
-
-        except (KeyError, ValueError, IndexError):
-            self.resjson['text'] = "I cannot find data on your currency. I can find data on the following currencies: " + ", ".join(self.interlace(list(self.currencies_abbreviated), self.currencies_expanded))
-
-        except Exception as e:
-            self.resjson['text'] = str(e)
-            raise Exception
-
-        finally:
-            self.write(self.resjson)
-
+    @gen.coroutine
     def get(self):
-        """Handle GET requests."""
-        self.post()
+        """Handle GET requests when testing."""
+        yield self.post()  # you need to use the 'yield' keyword since self.post() is a coroutine
+
 
 
 class ThinkHandler(tornado.web.RequestHandler):
@@ -99,7 +94,7 @@ class ThinkHandler(tornado.web.RequestHandler):
 
     def prepare(self):
         """Prepare for handling the request."""
-        self.params = paramsfromrequest(self.request)
+        self.params = params_from_request(self.request)
         self.resjson = {"response_type": "in_channel"}
         self.words = []
         try:

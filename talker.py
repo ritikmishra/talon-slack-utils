@@ -7,6 +7,7 @@ import sys
 import random
 import subprocess
 import json
+from install_nltk_modules import install
 from contractions import Decontract
 
 
@@ -17,6 +18,11 @@ class Talker:
         """Load word list, download necessary components."""
         with open("./words.json", "r+") as self.wordfile:
             self.used_words = json.loads(self.wordfile.read())
+        try:
+            test_tokens = nltk.word_tokenize("Test sentence")
+            nltk.pos_tag(test_tokens)
+        except LookupError:
+            install()
 
     def __str__(self):
         """Return all the words that can be used by the program to make sentences."""
