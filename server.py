@@ -2,6 +2,7 @@
 import tornado.ioloop
 import tornado.web
 import tornado.httpclient
+import tornado.testing
 from tornado import gen
 
 

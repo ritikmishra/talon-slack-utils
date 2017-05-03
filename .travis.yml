@@ -2,5 +2,7 @@ language: python
 python:
     - "3.5"
 install: "pip install -r requirements.txt && python install_nltk_modules.py"
+script: "python -m tornado.testing test_cases.py"
+
 
 
