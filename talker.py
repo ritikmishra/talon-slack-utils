@@ -16,7 +16,7 @@ class Talker:
 
     def __init__(self):
         """Load word list, download necessary components."""
-        with open("./words.json", "r+") as self.wordfile:
+        with open("words.json", "r+") as self.wordfile:
             self.used_words = json.loads(self.wordfile.read())
         try:
             test_tokens = nltk.word_tokenize("Test sentence")
@@ -28,20 +28,21 @@ class Talker:
         """Return all the words that can be used by the program to make sentences."""
         return self.used_words
 
-    def user_said_question(self, human_response):
+    @staticmethod
+    def user_said_question(human_response):
         """Figure out if the user gave me a yes/no question."""
-        self.qtype = subprocess.check_output(['node', 'questions.js', str(human_response)]).strip().decode("UTF-8")
-        if self.qtype == "YN":
+        qtype = subprocess.check_output(['node', 'questions.js', str(human_response)]).strip().decode("UTF-8")
+        if qtype == "YN":
             return True
         else:
             return False
 
     def conjugator(self, form):
         """Conjugate verbs by passing them to a node script."""
-        self.verb = subprocess.check_output(['node', 'conjugate.js', random.choice(self.used_words["verb"]), form]).strip().decode("UTF-8")
-        if self.verb == "does" or self.verb == "makes" or self.verb == "doing":
-            self.verb += " " + random.choice(self.used_words["determiner"]) + " " + random.choice(self.used_words["noun"])
-        return self.verb
+        verb = subprocess.check_output(['node', 'conjugate.js', random.choice(self.used_words["verb"]), form]).strip().decode("UTF-8")
+        if verb == "does" or verb == "makes" or verb == "doing":
+            verb += " " + random.choice(self.used_words["determiner"]) + " " + random.choice(self.used_words["noun"])
+        return verb
 
     def word_processor(self, tags):
         """
@@ -75,7 +76,7 @@ class Talker:
                 self.used_words["determiner"].append(word[0].lower())
             if x % 5000 == 0:
                 print("Tag #" + str(x) + " scanned")
-        with open("./words.json", "r+") as wordfile:
+        with open("words.json", "r+") as wordfile:
             json.dump(self.used_words, wordfile)
 
     def statement(self):
