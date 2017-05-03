@@ -4,6 +4,7 @@ import nltk
 def install():
     modules = open("nltk.txt", "r")
     for corpus in modules:
+        corpus = corpus[:-1]
         print("Installing " + corpus + ". . .")
         nltk.download(corpus)
 
