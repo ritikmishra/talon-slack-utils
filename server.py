@@ -4,11 +4,9 @@ import tornado.web
 import tornado.httpclient
 import tornado.testing
 from tornado import gen
-
-
 from talker import Talker
 import os
-# url = "https"
+
 try:
     PORT = os.environ['PORT']
 except KeyError:
@@ -86,7 +84,6 @@ class BTCExchangeRateHandler(tornado.web.RequestHandler):
     def get(self):
         """Handle GET requests when testing."""
         yield self.post()  # you need to use the 'yield' keyword since self.post() is a coroutine
-
 
 
 class ThinkHandler(tornado.web.RequestHandler):
