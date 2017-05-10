@@ -1,3 +1,4 @@
+"use strict";
 let nlp = require("nlp_compromise");
 var args = process.argv.slice(2);
 var verb = args[0]

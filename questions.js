@@ -1,3 +1,4 @@
+"use strict";
 // ** Can you give me an example of a living animal?
 // ** Can you tell me the name of a famous actor?
 // ** CAN YOU TELL JOKES
