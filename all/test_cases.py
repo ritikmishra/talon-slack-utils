@@ -1,11 +1,11 @@
 """Test for Travis CI, as we cannot break poor little Titanium when working on it."""
 import tornado.testing
-from all import server
+from all.server import server_main
 
 
 class ServerTest(tornado.testing.AsyncHTTPTestCase):
     def get_app(self):
-        return server.make_app()
+        return server_main.make_app()
 
     def test_exchange(self):
         """Test that we can find the exchange rate between Dollars and Euros"""
