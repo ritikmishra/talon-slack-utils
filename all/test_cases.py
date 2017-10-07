@@ -4,12 +4,14 @@ from all.server import server_main
 
 
 class ServerTest(tornado.testing.AsyncHTTPTestCase):
+
+
     def get_app(self):
         return server_main.make_app()
 
     def test_exchange(self):
         """Test that we can find the exchange rate between Dollars and Euros"""
-        response = self.fetch("/exchange?text=USD EUR")
+        response = self.fetch("/exchange?text=USD%20EUR")
         # Test contents of response
         print(response.body)
         self.assertIn(b"USD", response.body)
@@ -18,7 +20,7 @@ class ServerTest(tornado.testing.AsyncHTTPTestCase):
 
     def test_triple_exchange(self):
         """Test that we can find the exchange rate between USD and EUR as well as USD and CAD"""
-        response = self.fetch("/exchange?text=USD EUR CAD")
+        response = self.fetch("/exchange?text=USD%20EUR%20CAD")
         # Test contents of response
         print(response.body)
         self.assertIn(b"USD", response.body)
@@ -28,7 +30,7 @@ class ServerTest(tornado.testing.AsyncHTTPTestCase):
 
     def test_btc_triple_exchange(self):
         """Test that we can find the exchange rate between BTC and multiple other currencies"""
-        response = self.fetch("/exchange?text=BTC EUR CAD")
+        response = self.fetch("/exchange?text=BTC%20EUR%20CAD")
         # Test contents of response
         print(response.body)
         self.assertIn(b"BTC", response.body)
@@ -36,9 +38,9 @@ class ServerTest(tornado.testing.AsyncHTTPTestCase):
         self.assertIn(b"CAD", response.body)
         self.assertEqual(response.code, 200)
 
-    def test_triple_exchange(self):
+    def test_btc_exchange(self):
         """Test that we can find the exchange rate between BTC and one other currency"""
-        response = self.fetch("/exchange?text=BTC EUR")
+        response = self.fetch("/exchange?text=BTC%20EUR")
         # Test contents of response
         print(response.body)
         self.assertIn(b"BTC", response.body)

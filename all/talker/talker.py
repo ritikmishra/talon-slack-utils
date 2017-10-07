@@ -17,6 +17,7 @@ class Talker:
     """The class that creates English sentences with bad grammar."""
 
     def __init__(self):
+        self.__PATH = "../"
         """Load word list, download necessary components."""
         self.__path = os.path.dirname(os.path.realpath(__file__))
         with open(os.path.dirname(os.path.realpath(__file__)) + "/words.json", "r+") as self.wordfile:
@@ -31,10 +32,10 @@ class Talker:
         """Return all the words that can be used by the program to make sentences."""
         return self.used_words
 
-    @staticmethod
-    def user_said_question(human_response):
+    def user_said_question(self, human_response):
         """Figure out if the user gave me a yes/no question."""
-        qtype = subprocess.check_output(['node', 'questions.js', str(human_response)]).strip().decode("UTF-8")
+        qtype = subprocess.check_output(['node', self.__PATH + 'questions.js', str(human_response)]).strip().decode(
+            "UTF-8")
         if qtype == "YN":
             return True
         else:
@@ -42,7 +43,8 @@ class Talker:
 
     def conjugator(self, form):
         """Conjugate verbs by passing them to a node script."""
-        verb = subprocess.check_output(['node', 'conjugate.js', random.choice(self.used_words["verb"]), form]).strip().decode("UTF-8")
+        verb = subprocess.check_output(
+            ['node', self.__PATH + 'conjugate.js', random.choice(self.used_words["verb"]), form]).strip().decode("UTF-8")
         if verb == "does" or verb == "makes" or verb == "doing":
             verb += " " + random.choice(self.used_words["determiner"]) + " " + random.choice(self.used_words["noun"])
         return verb
@@ -61,8 +63,10 @@ class Talker:
                 self.used_words["noun"].append(word[0].lower())
             elif word[1][0:2] == "PR" and not (word[0] in self.used_words["pronoun"]):
                 self.used_words["pronoun"].append(word[0])
-            elif (word[1][0:2] == "VB" or word[1][0:2] == "MD") and word[0] != "would" and word[0] != "could" and word[0] != "should" and not word[0] in self.used_words["verb"]:
-                self.used_words["verb"].append(subprocess.check_output(['node', 'conjugate.js', word[0], 'infinitive']).strip().decode("UTF-8"))
+            elif (word[1][0:2] == "VB" or word[1][0:2] == "MD") and word[0] != "would" and word[0] != "could" and word[
+                0] != "should" and not word[0] in self.used_words["verb"]:
+                self.used_words["verb"].append(
+                    subprocess.check_output(['node', 'conjugate.js', word[0], 'infinitive']).strip().decode("UTF-8"))
             elif word[1][0:2] == "JJ" and not (word[0] in self.used_words["adjective"]):
                 self.used_words["adjective"].append(word[0].lower())
             elif word[1][0:2] == "RB" and not (word[0] in self.used_words["adverb"]):
@@ -122,12 +126,14 @@ class Talker:
         elif len(self.used_words["noun"]) == 0:
             self.phrase = "What is your favorite thing to eat?"
         elif len(self.used_words["adverb"]) == 0:
-            self.phrase = "How do people " + random.choice(self.used_words["verb"]) + " the " + random.choice(self.used_words["noun"]) + "?"
+            self.phrase = "How do people " + random.choice(self.used_words["verb"]) + " the " + random.choice(
+                self.used_words["noun"]) + "?"
         else:
             self.type = random.randint(1, 2)
             if self.type == 1:
                 # Who eats messily?
-                self.phrase += random.choice(self.used_words["verb"]) + " " + random.choice(self.used_words["adverb"]) + "?"
+                self.phrase += random.choice(self.used_words["verb"]) + " " + random.choice(
+                    self.used_words["adverb"]) + "?"
             else:
                 #
                 self.noun_options = self.used_words["noun"]
