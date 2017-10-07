@@ -1,5 +1,5 @@
 """Test the contraction module."""
-from contractions import Decontract
+from server.talker import Decontract
 
 # Test 1
 phrase = "n't"

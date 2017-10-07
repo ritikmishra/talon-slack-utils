@@ -1,14 +1,16 @@
 """Create fake english sentences."""
 from __future__ import division
 
-
-import nltk
-import sys
+import json
+import os
 import random
 import subprocess
-import json
-from install_nltk_modules import install
-from contractions import Decontract
+import sys
+
+import nltk
+
+from .contractions import Decontract
+from .install_nltk_modules import install
 
 
 class Talker:
@@ -16,7 +18,7 @@ class Talker:
 
     def __init__(self):
         """Load word list, download necessary components."""
-        with open("words.json", "r+") as self.wordfile:
+        with open(os.path.dirname(os.path.realpath(__file__)) + "/words.json", "r+") as self.wordfile:
             self.used_words = json.loads(self.wordfile.read())
         try:
             test_tokens = nltk.word_tokenize("Test sentence")

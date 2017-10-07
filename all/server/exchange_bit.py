@@ -1,11 +1,10 @@
-import tornado.ioloop
-import tornado.web
 import tornado.httpclient
+import tornado.ioloop
 import tornado.testing
+import tornado.web
 from tornado import gen
-from talker import Talker
-import os
-from server.params import params_from_request
+
+from .params import params_from_request
 
 
 class BTCExchangeRateHandler(tornado.web.RequestHandler):
@@ -45,9 +44,11 @@ class BTCExchangeRateHandler(tornado.web.RequestHandler):
 
     @gen.coroutine
     def get_all(self):
+        """Get the exchange rates for the specified currencies."""
         result = []
         http_client = tornado.httpclient.AsyncHTTPClient()
-        response = yield http_client.fetch("https://api.fixer.io/latest?base=" + self.base + "&symbols=" + ",".join(self.currencies))
+        response = yield http_client.fetch(
+            "https://api.fixer.io/latest?base=" + self.base + "&symbols=" + ",".join(self.currencies))
 
         # how many of each other currency
         data = tornado.escape.json_decode(response.body)["rates"][self.currency]
@@ -55,37 +56,53 @@ class BTCExchangeRateHandler(tornado.web.RequestHandler):
 
     @gen.coroutine
     def get_btc(self):
+        """Get the exchange rate between USD and BTC. Please"""
         http_client = tornado.httpclient.AsyncHTTPClient()
         response = yield http_client.fetch("http://blockchain.info/ticker")
         data = tornado.escape.json_decode(response.body)["USD"]["last"]
         yield float(data)
 
-
     @gen.coroutine
     def convert_btc(self):
+        """Convert the exchange rate for an arbitrary currency to USD into one for BTC."""
         currency_per_usd = yield self.get_all()
 
         # a number
         usd_per_btc = yield self.get_btc()
 
         currency_per_btc = {}
+
         for currency in currency_per_usd:
-            currency_per_usd[currency] = usd_per_btc * currency_per_usd[currency]
+            currency_per_btc[currency] = usd_per_btc * currency_per_usd[currency]
+
+        yield currency_per_btc
 
     def format_nums(self, currency_per_base):
+        """
+        Turn a dictionary of the format:
+
+        {"USD": 123, "EUR": 456}
+
+        into
+
+        "1 <base currency> is worth 123 USD.\n1 ABC is worth 456 EUR."
+
+        """
         result = []
         for currency, rate in currency_per_base.items():
             result.append("1 " + self.base + " is worth " + rate + " " + currency)
         return "\n".join(result)
-
 
     @gen.coroutine
     def post(self):
         """Handle POST requests."""
         if self.btc:
             data = yield self.convert_btc()
+        else:
+            data = yield self.get_all()
 
-        self.resjson['text'] = yield self.get_btc()
+
+        self.resjson['text'] = self.format_nums(data)
         self.write(self.resjson)
 
     @gen.coroutine

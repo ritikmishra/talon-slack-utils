@@ -1,12 +1,14 @@
 """Run the server for the slack stuff."""
-import tornado.ioloop
-import tornado.web
-import tornado.httpclient
-import tornado.testing
-from tornado import gen
-from talker import Talker
 import os
-from exchange_bit import BTCExchangeRateHandler
+
+import tornado.httpclient
+import tornado.ioloop
+import tornado.testing
+import tornado.web
+
+from .exchange_bit import BTCExchangeRateHandler
+from .params import params_from_request
+from all.talker.talker import Talker
 
 try:
     PORT = os.environ['PORT']
@@ -25,7 +27,7 @@ class ThinkHandler(tornado.web.RequestHandler):
 
     def prepare(self):
         """Prepare for handling the request."""
-        self.params = params(self.request)
+        self.params = params_from_request(self.request)
         self.resjson = {"response_type": "in_channel"}
         self.words = []
         try:
@@ -55,7 +57,7 @@ def make_app():
     ])
 
 
-if __name__ == "__main__":
+def main():
     app = make_app()
     app.listen(PORT)
     print("Listening on port " + str(PORT))
