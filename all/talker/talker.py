@@ -17,7 +17,7 @@ class Talker:
     """The class that creates English sentences with bad grammar."""
 
     def __init__(self):
-        self.__PATH = "../"
+        self.__PATH = "./"
         """Load word list, download necessary components."""
         self.__path = os.path.dirname(os.path.realpath(__file__))
         with open(os.path.dirname(os.path.realpath(__file__)) + "/words.json", "r+") as self.wordfile:
