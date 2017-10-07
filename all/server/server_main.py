@@ -6,7 +6,7 @@ import tornado.ioloop
 import tornado.testing
 import tornado.web
 
-from .exchange_bit import BTCExchangeRateHandler
+from .exchange_bit import ExchangeRateHandler
 from .params import params_from_request
 from ..talker.talker import Talker
 
@@ -53,7 +53,7 @@ def make_app():
     """Assign handlers."""
     return tornado.web.Application([
         (r"/think", ThinkHandler),
-        (r"/exchange", BTCExchangeRateHandler)
+        (r"/exchange", ExchangeRateHandler)
     ])
 
 

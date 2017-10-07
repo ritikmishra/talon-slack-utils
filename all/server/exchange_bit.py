@@ -7,7 +7,7 @@ from tornado import gen
 from .params import params_from_request
 
 
-class BTCExchangeRateHandler(tornado.web.RequestHandler):
+class ExchangeRateHandler(tornado.web.RequestHandler):
     """Handle requests to find out the exchange rate."""
 
     def prepare(self):
@@ -21,6 +21,7 @@ class BTCExchangeRateHandler(tornado.web.RequestHandler):
         else:
             self.currencies = self.params['text'].upper().split(" ")
             self.base = self.currencies[0]
+            self.currencies = self.currencies[1:]
             if self.base == "BTC":
                 self.base = "USD"
                 self.btc = True
@@ -45,14 +46,22 @@ class BTCExchangeRateHandler(tornado.web.RequestHandler):
     @gen.coroutine
     def get_all(self):
         """Get the exchange rates for the specified currencies."""
-        result = []
+        result = {}
+
         http_client = tornado.httpclient.AsyncHTTPClient()
+        print("Base", self.base)
+        print("Symbols", self.currencies)
+        print("URL", "https://api.fixer.io/latest?base=" + self.base + "&symbols=" + ",".join(self.currencies))
         response = yield http_client.fetch(
-            "https://api.fixer.io/latest?base=" + self.base + "&symbols=" + ",".join(self.currencies))
+            "http://api.fixer.io/latest?base=" + self.base + "&symbols=" + ",".join(self.currencies))
 
         # how many of each other currency
-        data = tornado.escape.json_decode(response.body)["rates"][self.currency]
-        yield data
+        body = tornado.escape.json_decode(response.body)
+        print(body)
+        for currency in self.currencies:
+            result[currency] = body["rates"][currency]
+        print("Result", result)
+        raise gen.Return(result)
 
     @gen.coroutine
     def get_btc(self):
@@ -60,7 +69,7 @@ class BTCExchangeRateHandler(tornado.web.RequestHandler):
         http_client = tornado.httpclient.AsyncHTTPClient()
         response = yield http_client.fetch("http://blockchain.info/ticker")
         data = tornado.escape.json_decode(response.body)["USD"]["last"]
-        yield float(data)
+        raise gen.Return(float(data))
 
     @gen.coroutine
     def convert_btc(self):
@@ -75,7 +84,7 @@ class BTCExchangeRateHandler(tornado.web.RequestHandler):
         for currency in currency_per_usd:
             currency_per_btc[currency] = usd_per_btc * currency_per_usd[currency]
 
-        yield currency_per_btc
+        raise gen.Return(currency_per_btc)
 
     def format_nums(self, currency_per_base):
         """
@@ -89,20 +98,30 @@ class BTCExchangeRateHandler(tornado.web.RequestHandler):
 
         """
         result = []
+        if self.btc:
+            self.base = "BTC"
         for currency, rate in currency_per_base.items():
-            result.append("1 " + self.base + " is worth " + rate + " " + currency)
+            result.append("1 " + self.base + " is worth " + str(rate) + " " + currency)
         return "\n".join(result)
 
     @gen.coroutine
     def post(self):
         """Handle POST requests."""
-        if self.btc:
-            data = yield self.convert_btc()
+        try:
+
+            if self.btc:
+                data = yield self.convert_btc()
+                print("BTC")
+            else:
+                data = yield self.get_all()
+                print("Not BTC")
+        except KeyError:
+            self.resjson['text'] = "I'm sorry, the European Central Bank does not list exchange" \
+                                   "rates for one or more of those currencies"
+            self.resjson['response_type'] = "ephemeral"
         else:
-            data = yield self.get_all()
-
-
-        self.resjson['text'] = self.format_nums(data)
+            print(data)
+            self.resjson['text'] = self.format_nums(data)
         self.write(self.resjson)
 
     @gen.coroutine
