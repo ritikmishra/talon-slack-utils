@@ -18,6 +18,7 @@ class Talker:
 
     def __init__(self):
         """Load word list, download necessary components."""
+        self.__path = os.path.dirname(os.path.realpath(__file__))
         with open(os.path.dirname(os.path.realpath(__file__)) + "/words.json", "r+") as self.wordfile:
             self.used_words = json.loads(self.wordfile.read())
         try:
@@ -78,7 +79,7 @@ class Talker:
                 self.used_words["determiner"].append(word[0].lower())
             if x % 5000 == 0:
                 print("Tag #" + str(x) + " scanned")
-        with open("words.json", "r+") as wordfile:
+        with open(os.path.dirname(os.path.realpath(__file__)) + "/words.json", "r+") as wordfile:
             json.dump(self.used_words, wordfile)
 
     def statement(self):
