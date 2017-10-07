@@ -1,6 +1,6 @@
 """Test for Travis CI, as we cannot break poor little Titanium when working on it."""
 import tornado.testing
-import server
+from all import server
 
 
 class ServerTest(tornado.testing.AsyncHTTPTestCase):
