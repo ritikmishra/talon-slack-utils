@@ -28,9 +28,9 @@ class ServerTest(tornado.testing.AsyncHTTPTestCase):
         self.assertIn(b"CAD", response.body)
         self.assertEqual(response.code, 200)
 
-    def test_btc_triple_exchange(self):
+    def test_btc_multiple_exchange(self):
         """Test that we can find the exchange rate between BTC and multiple other currencies"""
-        response = self.fetch("/exchange?text=BTC%20EUR%20CAD")
+        response = self.fetch("/exchange?text=BTC%20EUR%20CAD%20USD")
         # Test contents of response
         print(response.body)
         self.assertIn(b"BTC", response.body)
