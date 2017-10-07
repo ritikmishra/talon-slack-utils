@@ -8,7 +8,7 @@ import tornado.web
 
 from .exchange_bit import BTCExchangeRateHandler
 from .params import params_from_request
-from all.talker.talker import Talker
+from ..talker.talker import Talker
 
 try:
     PORT = os.environ['PORT']
