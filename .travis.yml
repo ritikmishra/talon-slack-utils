@@ -4,8 +4,8 @@ language: python
 python:
     - "3.5"
 before_install: "curl -sL https://deb.nodesource.com/setup_6.x | sudo -E bash - && sudo apt-get install -y nodejs"
-install: "pip install -r requirements.txt && python install_nltk_modules.py"
-script: "python -m tornado.testing test_cases.py"
+install: "pip install -r requirements.txt && python all/talker/install_nltk_modules.py"
+script: "python -m tornado.testing all/test_cases.py"
 
 
 
