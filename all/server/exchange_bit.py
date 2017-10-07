@@ -63,7 +63,10 @@ class ExchangeRateHandler(tornado.web.RequestHandler):
         body = tornado.escape.json_decode(response.body)
         print(body)
         for currency in self.currencies:
-            result[currency] = body["rates"][currency]
+            if currency == self.base:
+                result[currency] = float(1)
+            else:
+                result[currency] = body["rates"][currency]
         print("Result", result)
         raise gen.Return(result)
 
@@ -98,7 +101,6 @@ class ExchangeRateHandler(tornado.web.RequestHandler):
 
         raise gen.Return(currency_per_btc)
 
-
     def format_nums(self, currency_per_base):
         """
         Turn a dictionary of the format:
@@ -128,10 +130,11 @@ class ExchangeRateHandler(tornado.web.RequestHandler):
             else:
                 data = yield self.get_all()
                 print("Not BTC")
-        except KeyError:
+        except KeyError as e:
             self.resjson['text'] = "I'm sorry, the European Central Bank does not list exchange" \
                                    "rates for one or more of those currencies"
             self.resjson['response_type'] = "ephemeral"
+            raise e
         else:
             print(data)
             self.resjson['text'] = self.format_nums(data)

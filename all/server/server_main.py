@@ -19,9 +19,6 @@ except KeyError:
 
 talker = Talker()
 
-
-
-
 class ThinkHandler(tornado.web.RequestHandler):
     """Handle requests for creating crap English sentences."""
 
