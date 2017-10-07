@@ -15,6 +15,10 @@ class ExchangeRateHandler(tornado.web.RequestHandler):
         self.base = "USD"
         self.btc = False
         self.params = params_from_request(self.request)
+        try:
+            print("Response URL:", self.params["Response URL"])
+        except KeyError:
+            print("No Response URL given")
         self.resjson = {"response_type": "in_channel"}
         if len(self.params['text']) == 0:
             self.currencies = ["EUR"]
@@ -64,6 +68,14 @@ class ExchangeRateHandler(tornado.web.RequestHandler):
         raise gen.Return(result)
 
     @gen.coroutine
+    def post_msg(self):
+        """Post a message to Slack's given reponse URL"""
+        http_client = tornado.httpclient.AsyncHTTPClient()
+        response = yield http_client.fetch(self.params["response_url"], method="POST")
+        data = tornado.escape.json_decode(response.body)["USD"]["last"]
+        raise gen.Return(float(data))
+
+    @gen.coroutine
     def get_btc(self):
         """Get the exchange rate between USD and BTC. Please"""
         http_client = tornado.httpclient.AsyncHTTPClient()
@@ -85,6 +97,7 @@ class ExchangeRateHandler(tornado.web.RequestHandler):
             currency_per_btc[currency] = usd_per_btc * currency_per_usd[currency]
 
         raise gen.Return(currency_per_btc)
+
 
     def format_nums(self, currency_per_base):
         """
