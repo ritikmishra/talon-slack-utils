@@ -83,8 +83,8 @@ class Talker:
                 self.used_words["determiner"].append(word[0].lower())
             if x % 5000 == 0:
                 print("Tag #" + str(x) + " scanned")
-        with open(os.path.dirname(os.path.realpath(__file__)) + "/words.json", "r+") as wordfile:
-            json.dump(self.used_words, wordfile)
+        # with open(os.path.dirname(os.path.realpath(__file__)) + "/words.json", "r+") as wordfile:
+        #     json.dump(self.used_words, wordfile)
 
     def statement(self):
         """Generate a statement using the words in self.used_words."""
