@@ -110,12 +110,12 @@ class ExchangeRateHandler(tornado.web.RequestHandler):
     @gen.coroutine
     def post_to_resurl(self):
         http_client = tornado.httpclient.AsyncHTTPClient()
-        response = yield http_client.fetch("http://blockchain.info/ticker", method="POST", body=json.dumps(self.resjson),
-                                headers={"Content-Type": "application/json"})
+        response = yield http_client.fetch(self.res_url, method="POST", body=json.dumps(self.resjson),
+                                           headers={"Content-Type": "application/json"})
 
         info(json.dumps(self.resjson))
         info(response)
-        yield response
+        # raise gen.Return(response)
 
     @gen.coroutine
     def post(self):
@@ -138,10 +138,9 @@ class ExchangeRateHandler(tornado.web.RequestHandler):
             info(data)
             self.resjson['text'] = self.format_nums(data)
             if self.res_url is not None:
-                self.post_to_resurl()
+                yield self.post_to_resurl()
             else:
                 self.write(self.resjson)
-
 
     @gen.coroutine
     def get(self):
