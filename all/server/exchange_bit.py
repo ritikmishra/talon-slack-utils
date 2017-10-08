@@ -3,9 +3,10 @@ import tornado.ioloop
 import tornado.testing
 import tornado.web
 from tornado import gen
-
+import json
 from .params import params_from_request
 from happylogger.log import *
+
 
 class ExchangeRateHandler(tornado.web.RequestHandler):
     """Handle requests to find out the exchange rate."""
@@ -16,9 +17,11 @@ class ExchangeRateHandler(tornado.web.RequestHandler):
         self.btc = False
         self.params = params_from_request(self.request)
         try:
-            info("Response URL:", self.params["Response URL"])
+            self.res_url = self.params["response_url"]
+            info("Response URL:", self.res_url)
         except KeyError:
             warn("No Response URL given")
+            self.res_url = None
         self.resjson = {"response_type": "in_channel"}
         if len(self.params['text']) == 0:
             self.currencies = ["EUR"]
@@ -31,7 +34,6 @@ class ExchangeRateHandler(tornado.web.RequestHandler):
                 self.btc = True
 
         self.add_header("Content-type", "application/json")
-
 
     @gen.coroutine
     def get_all(self):
@@ -106,6 +108,11 @@ class ExchangeRateHandler(tornado.web.RequestHandler):
         return "\n".join(result)
 
     @gen.coroutine
+    def post_to_resurl(self):
+        http_client = tornado.httpclient.AsyncHTTPClient()
+        yield http_client.fetch("http://blockchain.info/ticker", method="POST", body=json.dumps(self.resjson))
+
+    @gen.coroutine
     def post(self):
         """Handle POST requests."""
         try:
@@ -125,7 +132,11 @@ class ExchangeRateHandler(tornado.web.RequestHandler):
         else:
             info(data)
             self.resjson['text'] = self.format_nums(data)
-        self.write(self.resjson)
+            if self.res_url is not None:
+                self.post_to_resurl()
+            else:
+                self.write(self.resjson)
+
 
     @gen.coroutine
     def get(self):
