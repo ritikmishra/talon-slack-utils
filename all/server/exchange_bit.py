@@ -5,7 +5,7 @@ import tornado.web
 from tornado import gen
 
 from .params import params_from_request
-
+from happylogger.log import *
 
 class ExchangeRateHandler(tornado.web.RequestHandler):
     """Handle requests to find out the exchange rate."""
@@ -16,9 +16,9 @@ class ExchangeRateHandler(tornado.web.RequestHandler):
         self.btc = False
         self.params = params_from_request(self.request)
         try:
-            print("Response URL:", self.params["Response URL"])
+            info("Response URL:", self.params["Response URL"])
         except KeyError:
-            print("No Response URL given")
+            warn("No Response URL given")
         self.resjson = {"response_type": "in_channel"}
         if len(self.params['text']) == 0:
             self.currencies = ["EUR"]
@@ -32,20 +32,6 @@ class ExchangeRateHandler(tornado.web.RequestHandler):
 
         self.add_header("Content-type", "application/json")
 
-    def expand_currency_abbv(self, abbv):
-        """Expand currency abbreviations."""
-        return self.currencies_expanded[self.currencies_abbreviated.index(abbv)]
-
-    @staticmethod
-    def interlace(list_a, list_b):
-        """Interlace 2 lists."""
-        result = []
-        for x in range(len(list_a)):
-            pair = []
-            pair.append(list_a[x])
-            pair.append("(" + list_b[x] + ")")
-            result.append(" ".join(pair))
-        return result
 
     @gen.coroutine
     def get_all(self):
@@ -53,21 +39,21 @@ class ExchangeRateHandler(tornado.web.RequestHandler):
         result = {}
 
         http_client = tornado.httpclient.AsyncHTTPClient()
-        print("Base", self.base)
-        print("Symbols", self.currencies)
-        print("URL", "https://api.fixer.io/latest?base=" + self.base + "&symbols=" + ",".join(self.currencies))
+        info("Base", self.base)
+        info("Symbols", self.currencies)
+        info("URL", "https://api.fixer.io/latest?base=" + self.base + "&symbols=" + ",".join(self.currencies))
         response = yield http_client.fetch(
             "http://api.fixer.io/latest?base=" + self.base + "&symbols=" + ",".join(self.currencies))
 
         # how many of each other currency
         body = tornado.escape.json_decode(response.body)
-        print(body)
+        info(body)
         for currency in self.currencies:
             if currency == self.base:
                 result[currency] = float(1)
             else:
                 result[currency] = body["rates"][currency]
-        print("Result", result)
+        info("Result", result)
         raise gen.Return(result)
 
     @gen.coroutine
@@ -126,17 +112,18 @@ class ExchangeRateHandler(tornado.web.RequestHandler):
 
             if self.btc:
                 data = yield self.convert_btc()
-                print("BTC")
+                warn("BTC")
             else:
                 data = yield self.get_all()
-                print("Not BTC")
+                info("Not BTC")
         except KeyError as e:
             self.resjson['text'] = "I'm sorry, the European Central Bank does not list exchange" \
                                    "rates for one or more of those currencies"
             self.resjson['response_type'] = "ephemeral"
+            err("User did an invalid currency")
             raise e
         else:
-            print(data)
+            info(data)
             self.resjson['text'] = self.format_nums(data)
         self.write(self.resjson)
 
